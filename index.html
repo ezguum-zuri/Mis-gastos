@@ -23,7 +23,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
 :focus-visible{outline:2px solid var(--green);outline-offset:2px}
 .app{max-width:560px;margin:0 auto;min-height:100vh;padding:0 14px 120px}
 .top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:18px 4px 10px}
-.top h1{font-size:32px;line-height:1.05;margin:0;font-weight:800}
+.top h1{font-size:clamp(26px,8vw,32px);line-height:1.05;margin:0;font-weight:800}
 #sample{order:3;flex-basis:100%;margin-top:-2px}
 .top{flex-wrap:wrap}
 .note{font-size:15px;color:var(--mute)}
@@ -36,7 +36,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .seg button{flex:1;height:42px;border-radius:10px;font-size:16px;font-weight:600;color:var(--mute)}
 .seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px #0002}
 .months{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:14px 0 6px;border-bottom:1px solid var(--line)}
-.months button{height:48px;font-size:16px;color:var(--mute);font-weight:600;text-transform:capitalize}
+.months button{height:48px;font-size:16px;color:var(--mute);font-weight:600}
 .months button.on{color:var(--ink);box-shadow:inset 0 -3px var(--green)}
 .bd{--c:#888;flex:none;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 15%,transparent);color:var(--c)}
 .bd.solid{background:var(--c);color:#fff}
@@ -70,7 +70,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .btn{display:flex;align-items:center;justify-content:center;gap:8px;height:48px;width:100%;border-radius:16px;background:var(--green);color:#fff;font-weight:700;font-size:16px}
 .btn.ghost{background:var(--soft);color:var(--ink)}
 .btn.danger{background:transparent;color:var(--red);border:1px solid var(--line)}
-.bar{position:relative;height:30px;background:var(--soft);border-radius:10px;overflow:visible;margin:22px 0 6px}
+.bar{position:relative;height:30px;background:var(--soft);border-radius:10px;overflow:visible;margin:34px 0 6px}
 .bar i{position:absolute;inset:0 auto 0 0;border-radius:10px;background:var(--green);color:#fff;font:700 15px/30px "Plus Jakarta Sans",sans-serif;font-style:normal;padding-left:10px;white-space:nowrap;min-width:46px}
 .bar i.warn{background:var(--orange)}.bar i.over{background:var(--red)}
 .bar .today{position:absolute;top:-22px;bottom:-4px;width:2px;background:var(--ink)}
@@ -125,20 +125,29 @@ textarea.in{height:120px;padding:12px;font-size:14px}
 #toast{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);background:var(--ink);color:var(--card);padding:10px 16px;border-radius:12px;font-weight:600;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
 #toast.on{opacity:1}
 @media(max-width:380px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.top h1{font-size:28px}}
+.es2{display:block;font-size:.8em;font-weight:500;opacity:.72;margin-top:3px}
+.top h1 .es2{font-size:17px;font-weight:600;color:var(--mute);opacity:1;margin-top:4px}
+.lang{height:44px;min-width:44px;padding:0 12px;border-radius:22px;background:var(--soft);font-size:14px;font-weight:800}
 </style>
 </head>
 <body>
 <div class="app">
-  <header class="top"><h1 id="title">Movimientos</h1><span class="sp"></span><span class="note" id="sample"></span><button class="x" data-act="help" aria-label="Cómo funciona"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/></svg></button></header>
+  <header class="top"><h1 id="title">Movimientos</h1><span class="sp"></span><span class="note" id="sample"></span><button class="lang" data-act="lang" id="langbtn" aria-label="Idioma / Hizkuntza">ES</button><button class="x" data-act="help" aria-label="Cómo funciona / Nola dabil"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/></svg></button></header>
   <main id="view"></main>
 </div>
-<button class="fab" data-act="add" aria-label="Añadir movimiento"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+<button class="fab" data-act="add" aria-label="+"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
 <nav class="tabs" id="tabs"></nav>
 <div class="sheet" id="sheet" hidden><div class="panel" role="dialog" aria-modal="true" id="panel"></div></div>
 <div id="toast" role="status"></div>
 <script>
 {
 const $=s=>document.querySelector(s);
+const KEY='mis-finanzas-v1';
+let LANG='es';try{LANG=localStorage.getItem(KEY+'-lang')==='eu'?'eu':'es'}catch(e){}
+/* T: texto corto (bilingüe = "eu / es"), Ts: muy corto (bilingüe = solo eu), Tl: texto largo en HTML (bilingüe = eu y debajo es) */
+const T=(es,eu)=>LANG==='es'?es:LANG==='eu'?eu:eu+' / '+es;
+const Ts=(es,eu)=>LANG==='es'?es:eu;
+const Tl=(es,eu)=>LANG==='es'?es:LANG==='eu'?eu:eu+'<span class="es2">'+es+'</span>';
 const NF=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'});
 const NF0=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',maximumFractionDigits:0});
 const fmt=n=>NF.format(n), fmt0=n=>NF0.format(n);
@@ -150,11 +159,18 @@ const addDays=(s,n)=>{const d=pd(s);d.setDate(d.getDate()+n);return ds(d)};
 const dayDiff=(a,b)=>Math.round((pd(b)-pd(a))/864e5);
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const MES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const HIL=['urtarrila','otsaila','martxoa','apirila','maiatza','ekaina','uztaila','abuztua','iraila','urria','azaroa','abendua'];
+const HILN=['urtarrilean','otsailean','martxoan','apirilean','maiatzean','ekainean','uztailean','abuztuan','irailean','urrian','azaroan','abenduan'];
+const DIA=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const EGUN=['igandea','astelehena','asteartea','asteazkena','osteguna','ostirala','larunbata'];
 const ym=s=>s.slice(0,7);
 const ymAdd=(m,n)=>{const[a,b]=m.split('-').map(Number);const d=new Date(a,b-1+n,1);return d.getFullYear()+'-'+pad(d.getMonth()+1)};
 const ymEnd=m=>ds(new Date(+m.slice(0,4),+m.slice(5,7),0));
-const mShort=m=>MES[+m.slice(5,7)-1].slice(0,3)+' '+m.slice(0,4);
-const dShort=s=>{const d=pd(s);return d.getDate()+' '+MES[d.getMonth()].slice(0,3)};
+const mi=m=>+m.slice(5,7)-1;
+const mon3=i=>Ts(MES[i].slice(0,3),HIL[i].slice(0,3));
+const mShort=m=>LANG==='es'?MES[mi(m)].slice(0,3)+' '+m.slice(0,4):m.slice(0,4)+' '+HIL[mi(m)].slice(0,3);
+const dShort=s=>{const d=pd(s);return LANG==='es'?d.getDate()+' '+MES[d.getMonth()].slice(0,3):HIL[d.getMonth()].slice(0,3)+' '+d.getDate()};
+const dLong=s=>{const d=pd(s);return LANG==='es'?`${DIA[d.getDay()]} ${d.getDate()} ${MES[d.getMonth()].slice(0,3)}`:`${EGUN[d.getDay()]}, ${HIL[d.getMonth()].slice(0,3)} ${d.getDate()}`};
 const norm=s=>(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sum=a=>a.reduce((x,t)=>x+t.amount,0);
@@ -191,34 +207,35 @@ chev:'<path d="M9 6l6 6-6 6"/>',
 copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
 upload:'<path d="M12 16V4M7 9l5-5 5 5M4 20h16"/>',
 trash:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/>',
 spark:'<path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/>'};
 const ico=(n,s=20)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg>`;
 
 const CATS=[
-['groc','Supermercado','#c98a4b','cart','exp'],['eat','Restaurantes','#f0b03f','food','exp'],['drink','Bares y cafés','#e2bb1d','glass','exp'],['trans','Transporte','#4a90d9','bus','exp'],
-['car','Coche','#e25b5b','car','exp'],['home','Hogar','#a0673a','home','exp'],['bills','Facturas','#e5484d','zap','exp'],['shop','Compras','#5b6170','bag','exp'],
-['health','Salud','#e0607e','heart','exp'],['gym','Gimnasio','#3fb8a9','dumb','exp'],['sport','Ocio','#2fb3a0','ball','exp'],['edu','Educación','#8cc63f','book','exp'],
-['pets','Mascotas','#e86a8a','paw','exp'],['beauty','Belleza','#8a54d6','flower','exp'],['travel','Viajes','#ef5a4f','plane','exp'],['gift','Regalos','#4bb05e','gift','exp'],
-['pers','Personal','#e8615a','user','exp'],['other','Otros','#6b7280','help','exp'],
-['salary','Nómina','#3dbb85','cash','inc'],['extra','Extras','#2fa4d9','trend','inc'],['giftin','Regalos','#4bb05e','gift','inc'],['othin','Otros ingresos','#6b7280','help','inc']
-].map(([id,name,color,icon,kind])=>({id,name,color,icon,kind}));
+['groc','Supermercado','Supermerkatua','#c98a4b','cart','exp'],['eat','Restaurantes','Jatetxeak','#f0b03f','food','exp'],['drink','Bares y cafés','Tabernak eta kafeak','#e2bb1d','glass','exp'],['trans','Transporte','Garraioa','#4a90d9','bus','exp'],
+['car','Coche','Autoa','#e25b5b','car','exp'],['home','Hogar','Etxea','#a0673a','home','exp'],['bills','Facturas','Fakturak','#e5484d','zap','exp'],['shop','Compras','Erosketak','#5b6170','bag','exp'],
+['health','Salud','Osasuna','#e0607e','heart','exp'],['gym','Gimnasio','Gimnasioa','#3fb8a9','dumb','exp'],['sport','Ocio','Aisia','#2fb3a0','ball','exp'],['edu','Educación','Hezkuntza','#8cc63f','book','exp'],
+['pets','Mascotas','Maskotak','#e86a8a','paw','exp'],['beauty','Belleza','Edertasuna','#8a54d6','flower','exp'],['travel','Viajes','Bidaiak','#ef5a4f','plane','exp'],['gift','Regalos','Opariak','#4bb05e','gift','exp'],
+['pers','Personal','Pertsonala','#e8615a','user','exp'],['other','Otros','Besteak','#6b7280','help','exp'],
+['salary','Nómina','Nomina','#3dbb85','cash','inc'],['extra','Extras','Estrak','#2fa4d9','trend','inc'],['giftin','Regalos','Opariak','#4bb05e','gift','inc'],['othin','Otros ingresos','Bestelako sarrerak','#6b7280','help','inc']
+].map(([id,es,eu,color,icon,kind])=>({id,es,eu,color,icon,kind}));
 const CAT=Object.fromEntries(CATS.map(c=>[c.id,c]));
-const TR={id:'tr',name:'Transferencia',color:'#7a8194',icon:'swap'};
-const KW={groc:'mercadona eroski bm lidl carrefour dia aldi supermercado super fruteria carniceria pescaderia panaderia pan compra semana alcampo',
-eat:'restaurante menu comida cena pizza burger hamburguesa kebab sushi bocadillo pintxos asador sidreria telepizza mcdonalds burger king glovo',
-drink:'cafe bar copa copas cerveza cana kalimotxo ronda pote txikito vermut',
-trans:'metro bilbobus bizkaibus renfe euskotren taxi bus tren barik tranvia uber cabify',
-car:'gasolina gasoil diesel repsol cepsa parking aparcamiento peaje itv taller neumaticos lavado',
-home:'alquiler hipoteca comunidad ikea leroy mueble ferreteria limpieza',
-bills:'luz agua gas internet movil telefono fibra factura totalenergies iberdrola endesa seguro',
-health:'farmacia medico dentista optica fisio',gym:'gimnasio gym fitness crossfit',
-sport:'cine teatro entradas concierto netflix spotify hbo disney max prime libro museo',
-shop:'amazon zara decathlon ropa zapatillas mediamarkt primark corte ingles aliexpress',
-edu:'colegio academia libros curso extraescolar ikastola matricula',pets:'veterinario pienso mascota',
-beauty:'peluqueria barberia cosmetica',travel:'hotel vuelo avion booking airbnb viaje vacaciones',
-gift:'regalo cumpleanos',salary:'nomina salario sueldo paga',extra:'bizum venta wallapop devolucion reembolso'};
+const TR={id:'tr',es:'Transferencia',eu:'Transferentzia',color:'#7a8194',icon:'swap'};
+const cn=c=>T(c.es,c.eu), cns=c=>Ts(c.es,c.eu);
+const KW={groc:'mercadona eroski bm lidl carrefour dia aldi supermercado super fruteria carniceria pescaderia panaderia pan compra alcampo supermerkatua erosketa fruta okindegia harategia',
+eat:'restaurante menu comida cena pizza burger hamburguesa kebab sushi bocadillo pintxos asador sidreria telepizza mcdonalds glovo bazkaria afaria jatetxea sagardotegia erretegia',
+drink:'cafe bar copa copas cerveza cana kalimotxo ronda pote txikito vermut kafea garagardoa zuritoa potea taberna',
+trans:'metro bilbobus bizkaibus renfe euskotren taxi bus tren barik tranvia uber cabify autobusa trena',
+car:'gasolina gasoil diesel repsol cepsa parking aparcamiento peaje itv taller neumaticos lavado autoa aparkalekua bidesaria tailerra',
+home:'alquiler hipoteca comunidad ikea leroy mueble ferreteria limpieza alokairua etxea altzariak',
+bills:'luz agua gas internet movil telefono fibra factura totalenergies iberdrola endesa seguro argia ura faktura mugikorra asegurua',
+health:'farmacia medico dentista optica fisio botika farmazia medikua dentista',gym:'gimnasio gym fitness crossfit gimnasioa',
+sport:'cine teatro entradas concierto netflix spotify hbo disney max prime libro museo zinema antzerkia kontzertua sarrerak liburua',
+shop:'amazon zara decathlon ropa zapatillas mediamarkt primark corte ingles aliexpress arropa',
+edu:'colegio academia libros curso extraescolar ikastola matricula eskola akademia ikastaroa',pets:'veterinario pienso mascota albaitaria',
+beauty:'peluqueria barberia cosmetica ileapaindegia',travel:'hotel vuelo avion booking airbnb viaje vacaciones hegaldia bidaia oporrak',
+gift:'regalo cumpleanos oparia urtebetetzea',salary:'nomina salario sueldo paga soldata',extra:'bizum venta wallapop devolucion reembolso salmenta itzulketa'};
 
-const KEY='mis-finanzas-v1';
 let S, ui={tab:'movimientos',month:ym(today()),wallet:'all',kind:'exp',cat:null}, draft=null, manualCat=false;
 function load(){try{const r=localStorage.getItem(KEY);if(r){S=JSON.parse(r);return}}catch(e){}S=sample()}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
@@ -270,9 +287,10 @@ function guess(note){const n=norm(note);if(!n)return null;if(S.learn[n])return S
 
 /* ---------- piezas ---------- */
 const badge=(c,solid)=>`<span class="bd${solid?' solid':''}" style="--c:${c.color}">${ico(c.icon)}</span>`;
+const nMov=n=>LANG==='es'?`${n} ${n===1?'movimiento':'movimientos'}`:LANG==='eu'?`${n} mugimendu`:`${n} mugimendu / ${n===1?'movimiento':'movimientos'}`;
 function txRow(t){const c=t.type==='tr'?TR:(CAT[t.cat]||CAT.other);const sign=t.type==='exp'?'-':t.type==='inc'?'+':'';const cls=t.type==='exp'?'neg':t.type==='inc'?'pos':'mu';
-  const sub=t.type==='tr'?`${esc(wname(t.wallet))} → ${esc(wname(t.to))}`:`${esc(c.name)} · ${esc(wname(t.wallet))}`;
-  return`<button class="tx" data-act="edit" data-id="${t.id}">${badge(c)}<span class="txm"><b>${esc(t.note||c.name)}</b><small>${sub}</small></span><span class="amt ${cls}">${sign}${fmt(t.amount)}</span></button>`}
+  const sub=t.type==='tr'?`${esc(wname(t.wallet))} → ${esc(wname(t.to))}`:`${esc(cns(c))} · ${esc(wname(t.wallet))}`;
+  return`<button class="tx" data-act="edit" data-id="${t.id}">${badge(c)}<span class="txm"><b>${esc(t.note||cns(c))}</b><small>${sub}</small></span><span class="amt ${cls}">${sign}${fmt(t.amount)}</span></button>`}
 function curve(pts){const p=pts.map(([x,y])=>[x*100,y]);let d=`M${p[0][0]} ${p[0][1]}`;for(let i=1;i<p.length;i++){const[x0,y0]=p[i-1],[x1,y1]=p[i],xm=(x0+x1)/2;d+=` C${xm} ${y0} ${xm} ${y1} ${x1} ${y1}`}return d}
 function lineChart(pts,{lo,hi,color='var(--green)',ideal,labels=[],white}={}){
   const vals=pts.map(p=>p[1]);hi=hi??Math.max(...vals);lo=lo??Math.min(...vals);const rg=(hi-lo)||1;const Y=v=>38-(v-lo)/rg*34;
@@ -288,10 +306,10 @@ function donut(rows,tot){
   const cx=170,cy=168,r=88,C=2*Math.PI*r;let off=0,segs='',labs='',a=-Math.PI/2;
   rows.forEach(([id,v])=>{const c=CAT[id]||CAT.other,f=v.s/tot,len=f*C;
     segs+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${c.color}" stroke-width="36" stroke-dasharray="${Math.max(len-(rows.length>1?2:0),.5)} ${C}" stroke-dashoffset="${-off}" transform="rotate(-90 ${cx} ${cy})"/>`;
-    const mid=a+f*Math.PI;if(f>=.05){const co=Math.cos(mid),si=Math.sin(mid),lx=cx+co*132,ly=cy+si*124,rt=co>=0;
+    const mid=a+f*Math.PI;if(f>=.05){const co=Math.cos(mid),si=Math.sin(mid),lx=cx+co*132,ly=cy+si*124;
       labs+=`<line x1="${cx+co*108}" y1="${cy+si*108}" x2="${cx+co*116}" y2="${cy+si*110}" stroke="${c.color}" stroke-width="2"/><circle cx="${lx}" cy="${ly}" r="19" fill="${c.color}"/><svg x="${lx-11}" y="${ly-11}" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${IC[c.icon]}</svg><text x="${lx}" y="${si<0?ly-26:ly+38}" text-anchor="middle" fill="${c.color}">${Math.round(f*100)}%</text>`}
     off+=len;a+=f*2*Math.PI});
-  return`<svg class="donut" viewBox="0 0 340 340" role="img" aria-label="Reparto por categorías">${segs}${labs}<text x="${cx}" y="${cy-10}" text-anchor="middle" fill="var(--mute)" style="font-size:16px;font-weight:600">${ui.kind==='exp'?'Gastos':'Ingresos'}</text><text x="${cx}" y="${cy+18}" text-anchor="middle" fill="currentColor" style="font-size:24px;font-weight:800">${fmt0(tot)}</text></svg>`}
+  return`<svg class="donut" viewBox="0 0 340 340" role="img" aria-label="${T('Reparto por categorías','Kategorien banaketa')}">${segs}${labs}<text x="${cx}" y="${cy-10}" text-anchor="middle" fill="var(--mute)" style="font-size:16px;font-weight:600">${ui.kind==='exp'?Ts('Gastos','Gastuak'):Ts('Ingresos','Sarrerak')}</text><text x="${cx}" y="${cy+18}" text-anchor="middle" fill="currentColor" style="font-size:24px;font-weight:800">${fmt0(tot)}</text></svg>`}
 
 /* ---------- vistas ---------- */
 function vMov(){
@@ -300,138 +318,143 @@ function vMov(){
   const rows=Object.entries(by).sort((a,b)=>b[1].s-a[1].s),tot=rows.reduce((a,r)=>a+r[1].s,0);
   const inc=sum(list.filter(t=>t.type==='inc')),exp=sum(list.filter(t=>t.type==='exp'));
   const shown=ui.cat?list.filter(t=>t.cat===ui.cat):list;const days={};shown.forEach(t=>(days[t.date]??=[]).push(t));
-  const t0=today();const dl=d=>d===t0?'Hoy':d===addDays(t0,-1)?'Ayer':pd(d).toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'short'});
-  return`<div class="row"><select class="chip" id="wf" aria-label="Cartera"><option value="all">Todas las carteras</option>${S.wallets.map(w=>`<option value="${w.id}" ${ui.wallet===w.id?'selected':''}>${esc(w.name)}</option>`).join('')}</select><span class="sp"></span>
-  <div class="seg" style="width:190px">${[['exp','Gastos'],['inc','Ingresos']].map(([k,l])=>`<button data-act="kind" data-k="${k}" class="${ui.kind===k?'on':''}">${l}</button>`).join('')}</div></div>
+  const t0=today();const dl=d=>d===t0?T('Hoy','Gaur'):d===addDays(t0,-1)?T('Ayer','Atzo'):dLong(d);
+  return`<div class="row"><select class="chip" id="wf" aria-label="${T('Cartera','Zorroa')}"><option value="all">${T('Todas las carteras','Zorro guztiak')}</option>${S.wallets.map(w=>`<option value="${w.id}" ${ui.wallet===w.id?'selected':''}>${esc(w.name)}</option>`).join('')}</select><span class="sp"></span>
+  <div class="seg" style="width:210px">${[['exp',Ts('Gastos','Gastuak')],['inc',Ts('Ingresos','Sarrerak')]].map(([k,l])=>`<button data-act="kind" data-k="${k}" class="${ui.kind===k?'on':''}">${l}</button>`).join('')}</div></div>
   <div class="months">${[-1,0,1].map(k=>{const mm=ymAdd(m,k);return`<button data-act="month" data-m="${mm}" class="${k?'':'on'}">${mShort(mm)}</button>`}).join('')}</div>
-  <section class="card"><h2>Categorías</h2>${tot?donut(rows,tot):`<p class="empty">No hay ${ui.kind==='exp'?'gastos':'ingresos'} en ${MES[+m.slice(5)-1]}.</p>`}
-  <div class="legend">${rows.map(([id,v])=>{const c=CAT[id]||CAT.other;return`<button data-act="cat" data-c="${id}">${badge(c)}<span class="txm"><b>${c.name}</b><small>${v.n} ${v.n===1?'movimiento':'movimientos'} · ${Math.round(v.s/tot*100)}%</small></span><span class="amt ${ui.kind==='exp'?'neg':'pos'}">${ui.kind==='exp'?'-':'+'}${fmt(v.s)}</span></button>`}).join('')}</div>
-  <div class="sum3"><div><small>Ingresos</small><b class="pos">${fmt0(inc)}</b></div><div><small>Gastos</small><b class="neg">${fmt0(exp)}</b></div><div><small>Balance</small><b class="${inc-exp>=0?'pos':'neg'}">${fmt0(inc-exp)}</b></div></div></section>
-  ${ui.cat?`<button class="filt" data-act="cat" data-c="">Solo ${CAT[ui.cat]?.name} ${ico('x',16)}</button>`:''}
+  <section class="card"><h2>${T('Categorías','Kategoriak')}</h2>${tot?donut(rows,tot):`<p class="empty">${ui.kind==='exp'?Tl('No hay gastos este mes.','Ez dago gasturik hilabete honetan.'):Tl('No hay ingresos este mes.','Ez dago diru-sarrerarik hilabete honetan.')}</p>`}
+  <div class="legend">${rows.map(([id,v])=>{const c=CAT[id]||CAT.other;return`<button data-act="cat" data-c="${id}">${badge(c)}<span class="txm"><b>${cn(c)}</b><small>${nMov(v.n)} · ${Math.round(v.s/tot*100)}%</small></span><span class="amt ${ui.kind==='exp'?'neg':'pos'}">${ui.kind==='exp'?'-':'+'}${fmt(v.s)}</span></button>`}).join('')}</div>
+  <div class="sum3"><div><small>${Ts('Ingresos','Sarrerak')}</small><b class="pos">${fmt0(inc)}</b></div><div><small>${Ts('Gastos','Gastuak')}</small><b class="neg">${fmt0(exp)}</b></div><div><small>${Ts('Balance','Saldoa')}</small><b class="${inc-exp>=0?'pos':'neg'}">${fmt0(inc-exp)}</b></div></div></section>
+  ${ui.cat?`<button class="filt" data-act="cat" data-c="">${T('Solo','Soilik')}: ${cns(CAT[ui.cat]||CAT.other)} ${ico('x',16)}</button>`:''}
   ${Object.keys(days).length?Object.entries(days).map(([d,a])=>{const n=a.reduce((x,t)=>x+(t.type==='inc'?t.amount:t.type==='exp'?-t.amount:0),0);
-    return`<div class="day"><h3>${dl(d)}</h3><span class="${n<0?'neg':n>0?'pos':'mu'}">${n>0?'+':''}${fmt(n)}</span></div><div class="card txs" style="padding:4px 14px">${a.map(txRow).join('')}</div>`}).join(''):`<div class="card empty">Sin movimientos este mes. Toca + para añadir uno.</div>`}`}
+    return`<div class="day"><h3>${dl(d)}</h3><span class="${n<0?'neg':n>0?'pos':'mu'}">${n>0?'+':''}${fmt(n)}</span></div><div class="card txs" style="padding:4px 14px">${a.map(txRow).join('')}</div>`}).join(''):`<div class="card empty">${Tl('Sin movimientos este mes. Toca + para añadir uno.','Hilabete honetan ez dago mugimendurik. Sakatu + bat gehitzeko.')}</div>`}`}
 
 function vCarteras(){
   const now=today(),months=[];for(let k=6;k>=0;k--)months.push(ymAdd(ym(now),-k));
   const pts=months.map((m,i)=>[i/6,total(i===6?now:ymEnd(m))]);const vals=pts.map(p=>p[1]);
   const lo=Math.min(...vals),hi=Math.max(...vals),pad_=(hi-lo)*.15||100;
-  return`<section class="card"><div class="big">${fmt(total())}</div><div class="cap">Patrimonio total</div>
-  ${lineChart(pts,{lo:lo-pad_,hi:hi+pad_,labels:months.filter((_,i)=>i%2===0).map(m=>MES[+m.slice(5)-1].slice(0,3))})}
-  <button class="link" data-act="go" data-t="movimientos">${ico('spark',16)} Resumen de gastos ${ico('chev',16)}</button></section>
+  return`<section class="card"><div class="big">${fmt(total())}</div><div class="cap">${T('Patrimonio total','Ondare osoa')}</div>
+  ${lineChart(pts,{lo:lo-pad_,hi:hi+pad_,labels:months.filter((_,i)=>i%2===0).map(m=>mon3(mi(m)))})}
+  <button class="link" data-act="go" data-t="movimientos">${ico('spark',16)} ${T('Resumen de gastos','Gastuen laburpena')} ${ico('chev',16)}</button></section>
   ${S.wallets.map(w=>{const last=S.tx.filter(t=>t.wallet===w.id||t.to===w.id).reduce((a,t)=>t.date>a?t.date:a,'');const b=bal(w.id);
-    return`<button class="wal" data-act="wallet" data-id="${w.id}"><span class="bd solid" style="--c:${w.color}">${ico('wallet')}</span><span class="txm"><small>${esc(w.name)}</small><b class="${b<0?'neg':''}">${fmt(b)}</b><small>${last?'Último movimiento: '+dShort(last):'Sin movimientos'}</small></span>${ico('chev',18)}</button>`}).join('')}
-  <button class="btn ghost" data-act="wallet">${ico('wallet',18)} Nueva cartera</button>`}
+    return`<button class="wal" data-act="wallet" data-id="${w.id}"><span class="bd solid" style="--c:${w.color}">${ico('wallet')}</span><span class="txm"><small>${esc(w.name)}</small><b class="${b<0?'neg':''}">${fmt(b)}</b><small>${last?T('Último movimiento','Azken mugimendua')+': '+dShort(last):T('Sin movimientos','Mugimendurik ez')}</small></span>${ico('chev',18)}</button>`}).join('')}
+  <button class="btn ghost" data-act="wallet">${ico('wallet',18)} ${T('Nueva cartera','Zorro berria')}</button>`}
 
 function budState(b){const t=today(),{s,e}=period(b,t),sp=spentIn(b,s,e),days=dayDiff(s,e)+1,el=dayDiff(s,t)+1,left=days-el+1;
   const pace=b.amount*el/days,st=sp>b.amount?'over':sp>pace*1.05?'warn':'ok';return{s,e,sp,days,el,left,pct:sp/b.amount*100,st,perDay:Math.max(0,(b.amount-sp)/left)}}
-function budBar(b,x){return`<div class="bar"><i class="${x.st==='ok'?'':x.st}" style="width:${Math.min(100,Math.max(x.pct,0))}%">${Math.round(x.pct)}%</i><span class="today" style="left:${(x.el-.5)/x.days*100}%"><span>Hoy</span></span></div><div class="dates"><span>${dShort(x.s)}</span><span>${dShort(x.e)}</span></div>`}
+function budBar(b,x){return`<div class="bar"><i class="${x.st==='ok'?'':x.st}" style="width:${Math.min(100,Math.max(x.pct,0))}%">${Math.round(x.pct)}%</i><span class="today" style="left:${(x.el-.5)/x.days*100}%"><span>${Ts('Hoy','Gaur')}</span></span></div><div class="dates"><span>${dShort(x.s)}</span><span>${dShort(x.e)}</span></div>`}
+const ofTxt=a=>Ts('de '+fmt(a),'muga: '+fmt(a));
 function vPres(){
-  if(!S.budgets.length)return`<div class="card empty">Aún no tienes presupuestos.<br>Crea uno para controlar cuánto gastas por semana o por mes.</div><button class="btn" data-act="budget">${ico('moneybag',18)} Nuevo presupuesto</button>`;
-  return S.budgets.map(b=>{const x=budState(b);return`<button class="bud" data-act="bdetail" data-id="${b.id}"><div class="row"><b>${esc(b.name)}</b><span class="sp"></span><span class="note">${b.period==='week'?'Semanal':'Mensual'}</span></div>
-    <div class="note">${b.cats.length?b.cats.map(c=>CAT[c]?.name).join(', '):'Todos los gastos'}</div>
-    <div style="margin-top:6px"><b class="${x.st==='over'?'neg':'pos'}" style="font-size:22px">${fmt(x.sp)}</b> <span class="mu">de ${fmt(b.amount)}</span></div>${budBar(b,x)}</button>`}).join('')+
-  `<button class="btn ghost" data-act="budget">${ico('moneybag',18)} Nuevo presupuesto</button>`}
+  if(!S.budgets.length)return`<div class="card empty">${Tl('Aún no tienes presupuestos. Crea uno para controlar cuánto gastas por semana o por mes.','Oraindik ez duzu aurrekonturik. Sortu bat astean edo hilean zenbat gastatzen duzun kontrolatzeko.')}</div><button class="btn" data-act="budget">${ico('moneybag',18)} ${T('Nuevo presupuesto','Aurrekontu berria')}</button>`;
+  return S.budgets.map(b=>{const x=budState(b);return`<button class="bud" data-act="bdetail" data-id="${b.id}"><div class="row"><b>${esc(b.name)}</b><span class="sp"></span><span class="note">${b.period==='week'?T('Semanal','Astekoa'):T('Mensual','Hilekoa')}</span></div>
+    <div class="note">${b.cats.length?b.cats.map(c=>cns(CAT[c]||CAT.other)).join(', '):T('Todos los gastos','Gastu guztiak')}</div>
+    <div style="margin-top:6px"><b class="${x.st==='over'?'neg':'pos'}" style="font-size:24px">${fmt(x.sp)}</b> <span class="mu">${ofTxt(b.amount)}</span></div>${budBar(b,x)}</button>`}).join('')+
+  `<button class="btn ghost" data-act="budget">${ico('moneybag',18)} ${T('Nuevo presupuesto','Aurrekontu berria')}</button>`}
 
 function vAct(){
   const t=today(),cm=ym(t),pm=ymAdd(cm,-1);const out=[];
-  const pi=sum(txs(pm+'-01',ymEnd(pm),'inc')),pe=sum(txs(pm+'-01',ymEnd(pm),'exp')),net=pi-pe;
+  const pi=sum(txs(pm+'-01',ymEnd(pm),'inc')),pe=sum(txs(pm+'-01',ymEnd(pm),'exp')),net=pi-pe,pmi=mi(pm);
   const ms=[];for(let k=11;k>=0;k--)ms.push(ymAdd(cm,-k));const wp=ms.map((m,i)=>[i/11,total(i===11?t:ymEnd(m))]);
-  out.push(`<div class="ins ${net>=0?'g':'o'}"><small>Salud financiera</small><h3>${net>=0?'Tu salud financiera va a mejor':'El mes pasado gastaste más de lo que ingresaste'}</h3>
-   <p>En ${MES[+pm.slice(5)-1]} ${net>=0?'ingresaste':'gastaste'} ${fmt(Math.abs(net))} más de lo que ${net>=0?'gastaste':'ingresaste'}. Tu patrimonio está en ${fmt(total())}.</p>${lineChart(wp,{white:true})}</div>`);
-  // semana vs media
+  const hp=net>=0?Tl(`En ${MES[pmi]} ingresaste ${fmt(net)} más de lo que gastaste. Tu patrimonio está en ${fmt(total())}.`,`${HILN[pmi][0].toUpperCase()+HILN[pmi].slice(1)} ${fmt(net)} gehiago sartu zenuen gastatu baino. Zure ondarea: ${fmt(total())}.`)
+    :Tl(`En ${MES[pmi]} gastaste ${fmt(-net)} más de lo que ingresaste. Tu patrimonio está en ${fmt(total())}.`,`${HILN[pmi][0].toUpperCase()+HILN[pmi].slice(1)} ${fmt(-net)} gehiago gastatu zenuen sartu baino. Zure ondarea: ${fmt(total())}.`);
+  out.push(`<div class="ins ${net>=0?'g':'o'}"><small>${T('Salud financiera','Finantza-osasuna')}</small><h3>${net>=0?T('Tu salud financiera va a mejor','Zure finantza-osasuna hobera doa'):T('El mes pasado gastaste más de lo que ingresaste','Joan den hilean sartu baino gehiago gastatu zenuen')}</h3><p>${hp}</p>${lineChart(wp,{white:true})}</div>`);
   const ws=addDays(t,-((pd(t).getDay()+6)%7));const by={};txs(addDays(t,-30),t,'exp').filter(x=>!['home','bills'].includes(x.cat)).forEach(x=>by[x.cat]=(by[x.cat]||0)+x.amount);
   const top=Object.entries(by).sort((a,b)=>b[1]-a[1])[0];
-  if(top){const c=CAT[top[0]];const wk=sum(txs(ws,t,'exp').filter(x=>x.cat===top[0]));const avg=sum(txs(addDays(ws,-56),addDays(ws,-1),'exp').filter(x=>x.cat===top[0]))/8;
+  if(top){const c=CAT[top[0]]||CAT.other;const wk=sum(txs(ws,t,'exp').filter(x=>x.cat===top[0]));const avg=sum(txs(addDays(ws,-56),addDays(ws,-1),'exp').filter(x=>x.cat===top[0]))/8;
     const el=dayDiff(ws,t)+1,exp_=avg*el/7,good=wk<=exp_;const d=exp_?Math.round(Math.abs(wk-exp_)/exp_*100):0;
-    out.push(`<div class="ins ${good?'g':'o'}"><small>Esta semana</small><h3>${good?'¡Buen trabajo!':'Ojo con '+c.name.toLowerCase()}</h3><p>Llevas ${fmt(wk)} en ${c.name.toLowerCase()} esta semana. A estas alturas sueles llevar ${fmt(exp_)}${d?`: un ${d}% ${good?'menos':'más'}`:''}.</p></div>`)}
-  // dato curioso
-  const ys=cm.slice(0,4)+'-01-01',dr=sum(txs(ys,t,'exp').filter(x=>x.cat==='drink')),ea=sum(txs(ys,t,'exp').filter(x=>x.cat==='eat'));
-  if(dr||ea)out.push(`<div class="ins w"><small>Dato curioso</small><h3>Este año llevas ${fmt(dr+ea)} en bares y restaurantes</h3><p class="mu">Equivale a unos ${Math.round((dr+ea)/1.6).toLocaleString('es-ES')} cafés o ${Math.round((dr+ea)/15).toLocaleString('es-ES')} menús del día.</p></div>`);
-  // mayor cambio
-  const dn=pd(t).getDate(),pe2=ds(new Date(+pm.slice(0,4),+pm.slice(5)-1,Math.min(dn,+ymEnd(pm).slice(8))));const a1={},a0={};
+    const ces=c.es.toLowerCase(),ceu=c.eu.toLowerCase();
+    out.push(`<div class="ins ${good?'g':'o'}"><small>${T('Esta semana','Aste honetan')}</small><h3>${good?T('¡Buen trabajo!','Lan bikaina!'):T('Ojo con '+ces,'Kontuz: '+ceu)}</h3><p>${Tl(`Llevas ${fmt(wk)} en ${ces} esta semana. A estas alturas sueles llevar ${fmt(exp_)}${d?`: un ${d}% ${good?'menos':'más'}`:''}.`,`Aste honetan ${fmt(wk)} daramatzazu (${ceu}). Normalean ${fmt(exp_)} izaten dituzu une honetan${d?`: %${d} ${good?'gutxiago':'gehiago'}`:''}.`)}</p></div>`)}
+  const ys=cm.slice(0,4)+'-01-01',dr=sum(txs(ys,t,'exp').filter(x=>x.cat==='drink')),ea=sum(txs(ys,t,'exp').filter(x=>x.cat==='eat')),be=dr+ea;
+  if(be)out.push(`<div class="ins w"><small>${T('Dato curioso','Datu bitxia')}</small><h3>${T(`Este año llevas ${fmt(be)} en bares y restaurantes`,`Aurten ${fmt(be)} daramatzazu taberna eta jatetxeetan`)}</h3><p class="mu">${Tl(`Equivale a unos ${Math.round(be/1.6).toLocaleString('es-ES')} cafés o ${Math.round(be/15).toLocaleString('es-ES')} menús del día.`,`${Math.round(be/1.6).toLocaleString('es-ES')} kafe edo ${Math.round(be/15).toLocaleString('es-ES')} eguneko menu inguru dira.`)}</p></div>`);
+  const dn=pd(t).getDate(),pe2=ds(new Date(+pm.slice(0,4),pmi,Math.min(dn,+ymEnd(pm).slice(8))));const a1={},a0={};
   txs(cm+'-01',t,'exp').forEach(x=>a1[x.cat]=(a1[x.cat]||0)+x.amount);txs(pm+'-01',pe2,'exp').forEach(x=>a0[x.cat]=(a0[x.cat]||0)+x.amount);
   const ch=Object.keys({...a1,...a0}).map(k=>[k,(a1[k]||0)-(a0[k]||0)]).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]))[0];
-  if(ch&&Math.abs(ch[1])>10){const c=CAT[ch[0]]||CAT.other;out.push(`<div class="ins ${ch[1]>0?'r':'b'}"><small>Comparado con ${MES[+pm.slice(5)-1]}</small><h3>${c.name}: ${ch[1]>0?'+':''}${fmt(ch[1])}</h3><p>Es la categoría que más ha cambiado respecto a los mismos días del mes pasado.</p></div>`)}
-  // gastos fijos
+  if(ch&&Math.abs(ch[1])>10){const c=CAT[ch[0]]||CAT.other;out.push(`<div class="ins ${ch[1]>0?'r':'b'}"><small>${T('Comparado con el mes pasado','Joan den hilarekin alderatuta')}</small><h3>${cn(c)}: ${ch[1]>0?'+':''}${fmt(ch[1])}</h3><p>${Tl('Es la categoría que más ha cambiado respecto a los mismos días del mes pasado.','Joan den hileko egun berberekin alderatuta gehien aldatu den kategoria da.')}</p></div>`)}
   const g={};[...S.tx].sort((a,b)=>a.date.localeCompare(b.date)).filter(x=>x.type==='exp'&&x.note).forEach(x=>(g[norm(x.note)]??=[]).push(x));
   const fx=Object.values(g).filter(a=>{const m=new Set(a.map(x=>ym(x.date))).size;return m>=3&&a.length<=m+1}).map(a=>({n:a[a.length-1].note,c:CAT[a[0].cat]||CAT.other,v:sum(a.slice(-3))/Math.min(3,a.length)})).sort((a,b)=>b.v-a.v);
-  if(fx.length)out.push(`<section class="card"><h2>Gastos fijos detectados</h2><p class="note" style="margin:-6px 0 4px">Se repiten cada mes · unos ${fmt0(fx.reduce((a,f)=>a+f.v,0))}/mes</p><div class="legend">${fx.map(f=>`<button tabindex="-1">${badge(f.c)}<span class="txm"><b>${esc(f.n)}</b><small>${f.c.name}</small></span><span class="amt">${fmt(f.v)}</span></button>`).join('')}</div></section>`);
-  // flujo de caja
-  const six=ms.slice(-6).map(m=>{const s=m+'-01',e=ymEnd(m);return{m,i:sum(txs(s,e,'inc')),e:sum(txs(s,e,'exp'))}});const mx=Math.max(1,...six.flatMap(x=>[x.i,x.e]));
-  out.push(`<section class="card"><h2>Flujo de caja mensual</h2><div class="cf">${six.map(x=>`<span>${MES[+x.m.slice(5)-1].slice(0,3)}</span><div><i style="width:${x.i/mx*100}%;background:var(--green)" title="Ingresos ${fmt(x.i)}"></i><i style="width:${x.e/mx*100}%;background:var(--red)" title="Gastos ${fmt(x.e)}"></i></div>`).join('')}</div>
-   <div class="row note" style="margin-top:10px"><span style="color:var(--green)">●</span> Ingresos <span style="color:var(--red)">●</span> Gastos <span class="sp"></span>Ahorro 6 meses: <b class="${six.reduce((a,x)=>a+x.i-x.e,0)>=0?'pos':'neg'}">${fmt0(six.reduce((a,x)=>a+x.i-x.e,0))}</b></div></section>`);
+  if(fx.length){const fm=fmt0(fx.reduce((a,f)=>a+f.v,0));out.push(`<section class="card"><h2>${T('Gastos fijos detectados','Antzemandako gastu finkoak')}</h2><p class="note" style="margin:-6px 0 4px">${T(`Se repiten cada mes · unos ${fm}/mes`,`Hilero errepikatzen dira · ${fm}/hil inguru`)}</p><div class="legend">${fx.map(f=>`<button tabindex="-1">${badge(f.c)}<span class="txm"><b>${esc(f.n)}</b><small>${cns(f.c)}</small></span><span class="amt">${fmt(f.v)}</span></button>`).join('')}</div></section>`)}
+  const six=ms.slice(-6).map(m=>{const s=m+'-01',e=ymEnd(m);return{m,i:sum(txs(s,e,'inc')),e:sum(txs(s,e,'exp'))}});const mx=Math.max(1,...six.flatMap(x=>[x.i,x.e]));const sv=six.reduce((a,x)=>a+x.i-x.e,0);
+  out.push(`<section class="card"><h2>${T('Flujo de caja mensual','Hileko diru-fluxua')}</h2><div class="cf">${six.map(x=>`<span>${mon3(mi(x.m))}</span><div><i style="width:${x.i/mx*100}%;background:var(--green)"></i><i style="width:${x.e/mx*100}%;background:var(--red)"></i></div>`).join('')}</div>
+   <div class="row note" style="margin-top:10px"><span style="color:var(--green)">●</span> ${Ts('Ingresos','Sarrerak')} <span style="color:var(--red)">●</span> ${Ts('Gastos','Gastuak')} <span class="sp"></span>${T('Ahorro 6 meses','6 hileko aurrezkia')}: <b class="${sv>=0?'pos':'neg'}">${fmt0(sv)}</b></div></section>`);
   return out.join('')}
 
-function vMas(){return`<section class="card"><h2>Ayuda</h2><button class="mi" data-act="help">${ico('help')}<span class="txm"><b>Cómo funciona</b><small>Guía rápida de cada pantalla</small></span>${ico('chev',18)}</button></section><section class="card"><h2>Tus datos</h2><p class="note" style="margin-top:-4px">Se guardan solo en este navegador. Haz copia de vez en cuando.</p>
-  <button class="mi" data-act="backup">${ico('copy')}<span class="txm"><b>Copiar copia de seguridad</b><small>Copia todos los datos al portapapeles</small></span></button>
-  <button class="mi" data-act="csv">${ico('list')}<span class="txm"><b>Copiar movimientos (CSV)</b><small>Para pegar en Excel o Numbers</small></span></button>
-  <button class="mi" data-act="restore">${ico('upload')}<span class="txm"><b>Restaurar copia</b><small>Pega una copia guardada</small></span></button></section>
-  <section class="card"><h2>Categorización automática</h2><p class="note" style="margin-top:-4px">Al escribir el concepto (Eroski, gasolina, pote…) la app elige la categoría. Si la cambias, aprende para la próxima vez.</p>
-  <p style="margin:0"><b>${Object.keys(S.learn).length}</b> reglas aprendidas</p>${Object.keys(S.learn).length?`<button class="btn ghost" style="margin-top:10px" data-act="forget">Olvidar reglas aprendidas</button>`:''}</section>
-  <section class="card"><h2>Empezar</h2>${S.sample?'<p class="note" style="margin-top:-4px">Ahora ves datos de ejemplo.</p>':''}
-  <button class="btn danger" data-act="wipe">${ico('trash',18)} ${S.sample?'Borrar ejemplo y empezar de cero':'Borrar todos los datos'}</button>
-  ${S.sample?'':`<button class="btn ghost" style="margin-top:8px" data-act="demo">Cargar datos de ejemplo</button>`}</section>`}
+function vMas(){const nl=Object.keys(S.learn).length;return`<section class="card"><h2>${T('Idioma','Hizkuntza')}</h2><div class="seg">${[['es','Castellano'],['eu','Euskara']].map(([k,l])=>`<button data-act="setlang" data-k="${k}" class="${LANG===k?'on':''}">${l}</button>`).join('')}</div></section>
+  <section class="card"><h2>${T('Ayuda','Laguntza')}</h2><button class="mi" data-act="help">${ico('help')}<span class="txm"><b>${T('Cómo funciona','Nola dabil')}</b><small>${T('Guía rápida de cada pantalla','Pantaila bakoitzaren gida azkarra')}</small></span>${ico('chev',18)}</button></section>
+  <section class="card"><h2>${T('Tus datos','Zure datuak')}</h2><p class="note" style="margin-top:-4px">${Tl('Se guardan solo en este navegador. Haz copia de vez en cuando.','Nabigatzaile honetan bakarrik gordetzen dira. Egin kopia bat noizean behin.')}</p>
+  <button class="mi" data-act="backup">${ico('copy')}<span class="txm"><b>${T('Copiar copia de seguridad','Kopiatu segurtasun-kopia')}</b><small>${T('Copia todos los datos al portapapeles','Datu guztiak arbelera kopiatzen ditu')}</small></span></button>
+  <button class="mi" data-act="csv">${ico('list')}<span class="txm"><b>${T('Copiar movimientos (CSV)','Kopiatu mugimenduak (CSV)')}</b><small>${T('Para pegar en Excel o Numbers','Excel edo Numbers-en itsasteko')}</small></span></button>
+  <button class="mi" data-act="restore">${ico('upload')}<span class="txm"><b>${T('Restaurar copia','Leheneratu kopia')}</b><small>${T('Pega una copia guardada','Itsatsi gordetako kopia bat')}</small></span></button></section>
+  <section class="card"><h2>${T('Categorización automática','Kategorizazio automatikoa')}</h2><p class="note" style="margin-top:-4px">${Tl('Al escribir el concepto (Eroski, gasolina, pote…) la app elige la categoría. Si la cambias, aprende para la próxima vez.','Kontzeptua idaztean (Eroski, gasolina, potea…) aplikazioak kategoria aukeratzen du. Aldatzen baduzu, hurrengorako ikasten du.')}</p>
+  <p style="margin:0"><b>${nl}</b> ${T('reglas aprendidas','ikasitako arau')}</p>${nl?`<button class="btn ghost" style="margin-top:10px" data-act="forget">${T('Olvidar reglas aprendidas','Ahaztu ikasitako arauak')}</button>`:''}</section>
+  <section class="card"><h2>${T('Empezar','Hasi')}</h2>${S.sample?`<p class="note" style="margin-top:-4px">${Tl('Ahora ves datos de ejemplo.','Orain adibideko datuak ikusten ari zara.')}</p>`:''}
+  <button class="btn danger" data-act="wipe">${ico('trash',18)} ${S.sample?T('Borrar ejemplo y empezar de cero','Ezabatu adibidea eta hasi hutsetik'):T('Borrar todos los datos','Ezabatu datu guztiak')}</button>
+  ${S.sample?'':`<button class="btn ghost" style="margin-top:8px" data-act="demo">${T('Cargar datos de ejemplo','Kargatu adibideko datuak')}</button>`}</section>`}
 
-const TABS=[['movimientos','Movimientos','list','Movimientos',vMov],['carteras','Carteras','wallet','Carteras',vCarteras],['presupuestos','Presupuestos','moneybag','Presupuestos',vPres],['actividad','Actividad','bell','Ideas',vAct],['mas','Más','dots','Más',vMas]];
-function render(){const T=TABS.find(x=>x[0]===ui.tab)||TABS[0];$('#title').textContent=T[3];$('#sample').textContent=S.sample?'Datos de ejemplo':'';
-  $('#tabs').innerHTML=TABS.map(([k,l,i])=>`<button data-act="go" data-t="${k}" class="${k===T[0]?'on':''}" ${k===T[0]?'aria-current="page"':''}>${ico(i,22)}${l}</button>`).join('');
-  $('#view').innerHTML=T[4]()}
+const TABS=[['movimientos',['Movimientos','Mugimenduak'],'list',vMov],['carteras',['Carteras','Zorroak'],'wallet',vCarteras],['presupuestos',['Presupuestos','Aurrekontuak'],'moneybag',vPres],['actividad',['Ideas','Ideiak'],'bell',vAct],['mas',['Más','Gehiago'],'dots',vMas]];
+function render(){const TB=TABS.find(x=>x[0]===ui.tab)||TABS[0];document.documentElement.lang=LANG==='es'?'es':'eu';
+  $('#title').innerHTML=LANG==='bi'?`${TB[1][1]}<span class="es2">${TB[1][0]}</span>`:Ts(...TB[1]);$('#sample').textContent=S.sample?T('Datos de ejemplo','Adibideko datuak'):'';
+  $('#langbtn').textContent=LANG==='es'?'EU':'ES';$('#langbtn').setAttribute('aria-label',LANG==='es'?'Euskaraz':'En castellano');
+  $('#tabs').innerHTML=TABS.map(([k,l,i])=>`<button data-act="go" data-t="${k}" class="${k===TB[0]?'on':''}" ${k===TB[0]?'aria-current="page"':''}>${ico(i,22)}${Ts(...l)}</button>`).join('');
+  $('#view').innerHTML=TB[3]()}
 
 /* ---------- hojas ---------- */
 const openSheet=h=>{$('#panel').innerHTML=h;$('#sheet').hidden=false};
 const closeSheet=()=>{$('#sheet').hidden=true;draft=null};
-const head=t=>`<div class="sh"><h2>${t}</h2><button class="x" data-act="close" aria-label="Cerrar">${ico('x')}</button></div>`;
+const head=t=>`<div class="sh"><h2>${t}</h2><button class="x" data-act="close" aria-label="${T('Cerrar','Itxi')}">${ico('x')}</button></div>`;
 const wOpts=(sel)=>S.wallets.map(w=>`<option value="${w.id}" ${w.id===sel?'selected':''}>${esc(w.name)}</option>`).join('');
-function catGrid(){const k=draft.type;return CATS.filter(c=>c.kind===k).map(c=>`<button type="button" data-act="pickcat" data-c="${c.id}" class="${draft.cat===c.id?'on':''}" style="--c:${c.color}">${badge(c)}${c.name}</button>`).join('')}
+function catGrid(){const k=draft.type;return CATS.filter(c=>c.kind===k).map(c=>`<button type="button" data-act="pickcat" data-c="${c.id}" class="${draft.cat===c.id?'on':''}" style="--c:${c.color}">${badge(c)}${cns(c)}</button>`).join('')}
 function txSheet(){const t=draft,ed=!!t.id;
-  openSheet(`${head(ed?'Editar movimiento':'Nuevo movimiento')}<div class="seg">${[['exp','Gasto'],['inc','Ingreso'],['tr','Transferencia']].map(([k,l])=>`<button data-act="ttype" data-k="${k}" class="${t.type===k?'on':''}">${l}</button>`).join('')}</div>
-  <label class="f" for="fa">Importe</label><input class="in amtin" id="fa" inputmode="decimal" placeholder="0,00 €" value="${t.amount?String(t.amount).replace('.',','):''}">
-  <label class="f" for="fn">Concepto</label><input class="in" id="fn" placeholder="${t.type==='tr'?'Cajero, ahorro…':'Eroski, gasolina, pote…'}" value="${esc(t.note)}" autocomplete="off">
-  ${t.type==='tr'?`<div class="two"><div><label class="f" for="fw">Desde</label><select class="in" id="fw">${wOpts(t.wallet)}</select></div><div><label class="f" for="ft">Hacia</label><select class="in" id="ft">${wOpts(t.to||S.wallets.find(w=>w.id!==t.wallet)?.id)}</select></div></div>`
-   :`<div class="hint" id="hint"></div><div class="grid" id="cg">${catGrid()}</div><label class="f" for="fw">Cartera</label><select class="in" id="fw">${wOpts(t.wallet)}</select>`}
-  <label class="f" for="fd">Fecha</label><input class="in" type="date" id="fd" value="${t.date}">
-  <div style="display:grid;gap:8px;margin-top:16px"><button class="btn" data-act="savetx">Guardar</button>${ed?`<button class="btn danger" data-act="deltx">Eliminar</button>`:''}</div>`);
+  openSheet(`${head(ed?T('Editar movimiento','Editatu mugimendua'):T('Nuevo movimiento','Mugimendu berria'))}<div class="seg">${[['exp',Ts('Gasto','Gastua')],['inc',Ts('Ingreso','Sarrera')],['tr',Ts('Transferencia','Transferentzia')]].map(([k,l])=>`<button data-act="ttype" data-k="${k}" class="${t.type===k?'on':''}">${l}</button>`).join('')}</div>
+  <label class="f" for="fa">${T('Importe','Zenbatekoa')}</label><input class="in amtin" id="fa" inputmode="decimal" placeholder="0,00 €" value="${t.amount?String(t.amount).replace('.',','):''}">
+  <label class="f" for="fn">${T('Concepto','Kontzeptua')}</label><input class="in" id="fn" placeholder="${t.type==='tr'?Ts('Cajero, ahorro…','Kutxazaina, aurrezkia…'):Ts('Eroski, gasolina, pote…','Eroski, gasolina, potea…')}" value="${esc(t.note)}" autocomplete="off">
+  ${t.type==='tr'?`<div class="two"><div><label class="f" for="fw">${T('Desde','Nondik')}</label><select class="in" id="fw">${wOpts(t.wallet)}</select></div><div><label class="f" for="ft">${T('Hacia','Nora')}</label><select class="in" id="ft">${wOpts(t.to||S.wallets.find(w=>w.id!==t.wallet)?.id)}</select></div></div>`
+   :`<div class="hint" id="hint"></div><div class="grid" id="cg">${catGrid()}</div><label class="f" for="fw">${T('Cartera','Zorroa')}</label><select class="in" id="fw">${wOpts(t.wallet)}</select>`}
+  <label class="f" for="fd">${T('Fecha','Data')}</label><input class="in" type="date" id="fd" value="${t.date}">
+  <div style="display:grid;gap:8px;margin-top:16px"><button class="btn" data-act="savetx">${T('Guardar','Gorde')}</button>${ed?`<button class="btn danger" data-act="deltx">${T('Eliminar','Ezabatu')}</button>`:''}</div>`);
   if(!ed)setTimeout(()=>$('#fa')?.focus(),50)}
 function syncDraft(){const a=$('#fa'),n=$('#fn'),w=$('#fw'),to=$('#ft'),d=$('#fd');if(a)draft.amount=a.value;if(n)draft.note=n.value;if(w)draft.wallet=w.value;if(to)draft.to=to.value;if(d)draft.date=d.value}
-function openTx(id){if(!S.wallets.length){toast('Crea primero una cartera');ui.tab='carteras';render();return}
+function openTx(id){if(!S.wallets.length){toast(T('Crea primero una cartera','Sortu lehenik zorro bat'));location.hash='carteras';return}
   const t=id&&S.tx.find(x=>x.id===id);draft=t?{...t}:{type:ui.tab==='movimientos'&&ui.kind==='inc'?'inc':'exp',amount:'',cat:null,wallet:ui.wallet!=='all'?ui.wallet:S.wallets[0].id,to:null,date:today(),note:''};manualCat=!!t;txSheet()}
 function walletSheet(id){const w=id?W(id):{name:'',initial:0,color:'#3dbb85'};const cols=['#3dbb85','#4a90d9','#c98a4b','#8a54d6','#e5484d','#f0b03f','#2fb3a0','#5b6170'];
-  openSheet(`${head(id?'Editar cartera':'Nueva cartera')}<label class="f" for="wn">Nombre</label><input class="in" id="wn" value="${esc(w.name)}" placeholder="Cuenta, efectivo, tarjeta…">
-  <label class="f" for="wi">Saldo inicial</label><input class="in" id="wi" inputmode="decimal" value="${String(w.initial).replace('.',',')}">
-  ${id?`<p class="note">Saldo actual: <b>${fmt(bal(id))}</b></p>`:''}
-  <label class="f">Color</label><div class="row" id="wc">${cols.map(c=>`<button class="sw ${c===w.color?'on':''}" style="background:${c}" data-act="wcol" data-c="${c}" aria-label="Color ${c}"></button>`).join('')}</div>
-  <div style="display:grid;gap:8px;margin-top:16px"><button class="btn" data-act="savewal" data-id="${id||''}">Guardar</button>${id?`<button class="btn danger" data-act="delwal" data-id="${id}">Eliminar cartera</button>`:''}</div>`)}
+  openSheet(`${head(id?T('Editar cartera','Editatu zorroa'):T('Nueva cartera','Zorro berria'))}<label class="f" for="wn">${T('Nombre','Izena')}</label><input class="in" id="wn" value="${esc(w.name)}" placeholder="${Ts('Cuenta, efectivo, tarjeta…','Kontua, eskudirua, txartela…')}">
+  <label class="f" for="wi">${T('Saldo inicial','Hasierako saldoa')}</label><input class="in" id="wi" inputmode="decimal" value="${String(w.initial).replace('.',',')}">
+  ${id?`<p class="note">${T('Saldo actual','Uneko saldoa')}: <b>${fmt(bal(id))}</b></p>`:''}
+  <label class="f">${T('Color','Kolorea')}</label><div class="row" id="wc">${cols.map(c=>`<button class="sw ${c===w.color?'on':''}" style="background:${c}" data-act="wcol" data-c="${c}" aria-label="${c}"></button>`).join('')}</div>
+  <div style="display:grid;gap:8px;margin-top:16px"><button class="btn" data-act="savewal" data-id="${id||''}">${T('Guardar','Gorde')}</button>${id?`<button class="btn danger" data-act="delwal" data-id="${id}">${T('Eliminar cartera','Ezabatu zorroa')}</button>`:''}</div>`)}
 function budgetSheet(id){const b=id?S.budgets.find(x=>x.id===id):{name:'',amount:'',period:'month',cats:[],wallet:'all'};draft={...b,cats:[...b.cats]};
-  openSheet(`${head(id?'Editar presupuesto':'Nuevo presupuesto')}<label class="f" for="bn">Nombre</label><input class="in" id="bn" value="${esc(b.name)}" placeholder="Casa, ocio, coche…">
-  <label class="f" for="ba">Límite</label><input class="in" id="ba" inputmode="decimal" value="${b.amount?String(b.amount).replace('.',','):''}" placeholder="0 €">
-  <label class="f">Periodo</label><div class="seg" id="bp">${[['week','Semanal'],['month','Mensual']].map(([k,l])=>`<button data-act="bper" data-k="${k}" class="${draft.period===k?'on':''}">${l}</button>`).join('')}</div>
-  <label class="f">Categorías (ninguna = todos los gastos)</label><div class="chips" id="bc">${CATS.filter(c=>c.kind==='exp').map(c=>`<button data-act="bcat" data-c="${c.id}" class="${draft.cats.includes(c.id)?'on':''}">${c.name}</button>`).join('')}</div>
-  <label class="f" for="bw">Cartera</label><select class="in" id="bw"><option value="all">Todas</option>${wOpts(b.wallet)}</select>
-  <div style="display:grid;gap:8px;margin-top:16px"><button class="btn" data-act="savebud" data-id="${id||''}">Guardar</button>${id?`<button class="btn danger" data-act="delbud" data-id="${id}">Eliminar</button>`:''}</div>`)}
+  openSheet(`${head(id?T('Editar presupuesto','Editatu aurrekontua'):T('Nuevo presupuesto','Aurrekontu berria'))}<label class="f" for="bn">${T('Nombre','Izena')}</label><input class="in" id="bn" value="${esc(b.name)}" placeholder="${Ts('Casa, ocio, coche…','Etxea, aisia, autoa…')}">
+  <label class="f" for="ba">${T('Límite','Muga')}</label><input class="in" id="ba" inputmode="decimal" value="${b.amount?String(b.amount).replace('.',','):''}" placeholder="0 €">
+  <label class="f">${T('Periodo','Epea')}</label><div class="seg" id="bp">${[['week',Ts('Semanal','Astekoa')],['month',Ts('Mensual','Hilekoa')]].map(([k,l])=>`<button data-act="bper" data-k="${k}" class="${draft.period===k?'on':''}">${l}</button>`).join('')}</div>
+  <label class="f">${T('Categorías (ninguna = todos los gastos)','Kategoriak (bat ere ez = gastu guztiak)')}</label><div class="chips" id="bc">${CATS.filter(c=>c.kind==='exp').map(c=>`<button data-act="bcat" data-c="${c.id}" class="${draft.cats.includes(c.id)?'on':''}">${cns(c)}</button>`).join('')}</div>
+  <label class="f" for="bw">${T('Cartera','Zorroa')}</label><select class="in" id="bw"><option value="all">${T('Todas','Guztiak')}</option>${wOpts(b.wallet)}</select>
+  <div style="display:grid;gap:8px;margin-top:16px"><button class="btn" data-act="savebud" data-id="${id||''}">${T('Guardar','Gorde')}</button>${id?`<button class="btn danger" data-act="delbud" data-id="${id}">${T('Eliminar','Ezabatu')}</button>`:''}</div>`)}
 function budgetDetail(id){const b=S.budgets.find(x=>x.id===id),x=budState(b);
   const ts=S.tx.filter(t=>t.type==='exp'&&t.date>=x.s&&t.date<=today()&&(!b.cats.length||b.cats.includes(t.cat))&&(b.wallet==='all'||t.wallet===b.wallet));
   const pts=[[0,0]];let acc=0;for(let i=0;i<x.el;i++){const d=addDays(x.s,i);acc+=sum(ts.filter(t=>t.date===d));pts.push([(i+1)/x.days,acc])}
   const prev=[];let ref=addDays(x.s,-1);for(let i=0;i<4;i++){const p=period(b,ref),s=spentIn(b,p.s,p.e);prev.push({...p,sp:s});ref=addDays(p.s,-1)}
-  const msg=x.st==='over'?`Te has pasado ${fmt(x.sp-b.amount)} del límite. Quedan ${x.left} ${x.left===1?'día':'días'} de periodo.`:`${x.st==='warn'?'Vas algo rápido.':'Vas bien.'} Puedes gastar <b>${fmt(x.perDay)}</b> al día durante el resto del periodo.`;
-  openSheet(`${head(esc(b.name))}<div class="big ${x.st==='over'?'neg':'pos'}">${fmt(x.sp)}</div><div class="cap">gastado de ${fmt(b.amount)}</div>
+  const msg=x.st==='over'?Tl(`Te has pasado ${fmt(x.sp-b.amount)} del límite. Quedan ${x.left} ${x.left===1?'día':'días'} de periodo.`,`Muga ${fmt(x.sp-b.amount)} gainditu duzu. Epea amaitzeko ${x.left} egun falta dira.`)
+    :Tl(`${x.st==='warn'?'Vas algo rápido.':'Vas bien.'} Puedes gastar <b>${fmt(x.perDay)}</b> al día durante el resto del periodo.`,`${x.st==='warn'?'Azkarregi zoaz.':'Ondo zoaz.'} Egunean <b>${fmt(x.perDay)}</b> gasta ditzakezu epea amaitu arte.`);
+  openSheet(`${head(esc(b.name))}<div class="big ${x.st==='over'?'neg':'pos'}">${fmt(x.sp)}</div><div class="cap">${T('gastado de '+fmt(b.amount),'gastatuta · muga: '+fmt(b.amount))}</div>
   ${lineChart(pts,{lo:0,hi:Math.max(b.amount,acc)*1.08,ideal:b.amount,color:x.st==='over'?'var(--red)':x.st==='warn'?'var(--orange)':'var(--green)',labels:[dShort(x.s),dShort(addDays(x.s,Math.floor(x.days/2))),dShort(x.e)]})}
   <div class="msg ${x.st==='ok'?'':x.st}">${msg}</div>${budBar(b,x)}
-  <h3 style="margin:20px 0 6px">Periodos anteriores</h3>${prev.map(p=>{const pc=p.sp/b.amount*100;return`<div style="padding:8px 0;border-top:1px solid var(--line)"><div class="row"><span>Gastado ${fmt(p.sp)} (${Math.round(pc)}%)</span></div><div style="height:8px;border-radius:4px;background:var(--soft);margin:6px 0"><div style="height:100%;border-radius:4px;width:${Math.min(100,pc)}%;background:${pc>100?'var(--red)':'var(--green)'}"></div></div><div class="dates"><span>${dShort(p.s)}</span><span>${dShort(p.e)}</span></div></div>`}).join('')}
-  <div style="display:grid;gap:8px;margin-top:16px"><button class="btn ghost" data-act="budget" data-id="${id}">Editar presupuesto</button></div>`)}
-function restoreSheet(){openSheet(`${head('Restaurar copia')}<p class="note">Pega aquí el texto de una copia de seguridad. Sustituirá los datos actuales.</p><textarea class="in" id="rs" placeholder='{"v":1,…}'></textarea><button class="btn" style="margin-top:12px" data-act="dorestore">Restaurar</button>`)}
-
+  <h3 style="margin:20px 0 6px">${T('Periodos anteriores','Aurreko epeak')}</h3>${prev.map(p=>{const pc=p.sp/b.amount*100;return`<div style="padding:8px 0;border-top:1px solid var(--line)"><div class="row"><span>${T('Gastado','Gastatuta')}: ${fmt(p.sp)} (${LANG==='es'?Math.round(pc)+'%':'%'+Math.round(pc)})</span></div><div style="height:8px;border-radius:4px;background:var(--soft);margin:6px 0"><div style="height:100%;border-radius:4px;width:${Math.min(100,pc)}%;background:${pc>100?'var(--red)':'var(--green)'}"></div></div><div class="dates"><span>${dShort(p.s)}</span><span>${dShort(p.e)}</span></div></div>`}).join('')}
+  <div style="display:grid;gap:8px;margin-top:16px"><button class="btn ghost" data-act="budget" data-id="${id}">${T('Editar presupuesto','Editatu aurrekontua')}</button></div>`)}
+function restoreSheet(){openSheet(`${head(T('Restaurar copia','Leheneratu kopia'))}<p class="note">${Tl('Pega aquí el texto de una copia de seguridad. Sustituirá los datos actuales.','Itsatsi hemen segurtasun-kopiaren testua. Oraingo datuak ordeztuko ditu.')}</p><textarea class="in" id="rs" placeholder='{"v":1,…}'></textarea><button class="btn" style="margin-top:12px" data-act="dorestore">${T('Restaurar','Leheneratu')}</button>`)}
 function helpSheet(){const H=[
-['list','#3dbb85','Movimientos','Arriba eliges cartera, Gastos o Ingresos y el mes. El rosco reparte el mes por categorías. Toca una categoría de la lista para ver solo sus movimientos; tócala otra vez para quitar el filtro. Toca cualquier movimiento para editarlo o borrarlo.'],
-['spark','#f0b03f','Añadir con el botón +','Pon el importe y el concepto (Eroski, gasolina, pote…). La app elige la categoría sola y te lo dice en verde. Si no acierta, toca la buena: la próxima vez lo recordará. Elige Transferencia para mover dinero entre carteras (por ejemplo, sacar del cajero a Efectivo); no cuenta como gasto.'],
-['wallet','#4a90d9','Carteras','Cada cuenta, tarjeta o el efectivo es una cartera con su saldo inicial. El patrimonio total suma todas y la gráfica muestra cómo ha ido cambiando cada mes. Toca una cartera para cambiar el nombre, el saldo inicial o el color.'],
-['moneybag','#8a54d6','Presupuestos','Pon un límite semanal o mensual para unas categorías (o para todo). La barra marca lo gastado y la raya «Hoy» dónde deberías ir: verde si vas bien, naranja si vas rápido, rojo si te pasas. Dentro verás cuánto puedes gastar al día y cómo te fue en periodos anteriores.'],
-['bell','#e0605a','Ideas','Resúmenes automáticos: si el mes pasado ahorraste, cómo va esta semana frente a tu media, qué categoría ha cambiado más, qué gastos se repiten cada mes y el flujo de ingresos y gastos de medio año.'],
-['copy','#5b6170','Tus datos','Todo se guarda solo en este móvil o navegador, nadie más lo ve. En Más puedes copiar una copia de seguridad (guárdala en Notas, por ejemplo) y restaurarla en otro dispositivo, o copiar los movimientos en CSV para Excel. Al empezar ves datos de ejemplo: bórralos en Más cuando quieras empezar con los tuyos.']];
-  openSheet(`${head('Cómo funciona')}${H.map(([i,c,t,d])=>`<div style="display:flex;gap:14px;padding:12px 0;border-top:1px solid var(--line)"><span class="bd solid" style="--c:${c}">${ico(i)}</span><div><b style="font-size:19px">${t}</b><p style="margin:4px 0 0;color:var(--mute)">${d}</p></div></div>`).join('')}<button class="btn" style="margin-top:12px" data-act="helpok">Entendido</button>`)}
+['list','#3dbb85',['Movimientos','Mugimenduak'],['Arriba eliges cartera, Gastos o Ingresos y el mes. El rosco reparte el mes por categorías. Toca una categoría de la lista para ver solo sus movimientos; tócala otra vez para quitar el filtro. Toca cualquier movimiento para editarlo o borrarlo.','Goian zorroa, Gastuak edo Sarrerak eta hilabetea aukeratzen dituzu. Eraztunak hilabetea kategoriatan banatzen du. Sakatu zerrendako kategoria bat haren mugimenduak soilik ikusteko; sakatu berriro iragazkia kentzeko. Sakatu edozein mugimendu editatzeko edo ezabatzeko.']],
+['spark','#f0b03f',['Añadir con el botón +','Gehitu + botoiarekin'],['Pon el importe y el concepto (Eroski, gasolina, pote…). La app elige la categoría sola y te lo dice en verde. Si no acierta, toca la buena: la próxima vez lo recordará. Elige Transferencia para mover dinero entre carteras (por ejemplo, sacar del cajero a Efectivo); no cuenta como gasto.','Jarri zenbatekoa eta kontzeptua (Eroski, gasolina, potea…). Aplikazioak kategoria berak aukeratzen du eta berdez adierazten dizu. Asmatzen ez badu, sakatu zuzena: hurrengoan gogoratuko du. Aukeratu Transferentzia zorroen artean dirua mugitzeko (adibidez, kutxazainetik Eskudirura); ez da gastu gisa zenbatzen.']],
+['wallet','#4a90d9',['Carteras','Zorroak'],['Cada cuenta, tarjeta o el efectivo es una cartera con su saldo inicial. El patrimonio total suma todas y la gráfica muestra cómo ha ido cambiando cada mes. Toca una cartera para cambiar el nombre, el saldo inicial o el color.','Kontu, txartel edo eskudiru bakoitza zorro bat da, bere hasierako saldoarekin. Ondare osoak guztiak batzen ditu, eta grafikoak hilero nola aldatu den erakusten du. Sakatu zorro bat izena, hasierako saldoa edo kolorea aldatzeko.']],
+['moneybag','#8a54d6',['Presupuestos','Aurrekontuak'],['Pon un límite semanal o mensual para unas categorías (o para todo). La barra marca lo gastado y la raya «Hoy» dónde deberías ir: verde si vas bien, naranja si vas rápido, rojo si te pasas. Dentro verás cuánto puedes gastar al día y cómo te fue en periodos anteriores.','Jarri asteko edo hileko muga kategoria batzuei (edo guztiei). Barrak gastatutakoa markatzen du, eta «Gaur» marrak non egon beharko zenukeen: berdea ondo bazoaz, laranja azkar bazoaz, gorria pasatzen bazara. Barruan ikusiko duzu egunean zenbat gasta dezakezun eta aurreko epeetan nola joan zitzaizun.']],
+['bell','#e0605a',['Ideas','Ideiak'],['Resúmenes automáticos: si el mes pasado ahorraste, cómo va esta semana frente a tu media, qué categoría ha cambiado más, qué gastos se repiten cada mes y el flujo de ingresos y gastos de medio año.','Laburpen automatikoak: joan den hilean aurreztu zenuen, aste hau zure batez bestekoarekin alderatuta nola doan, zein kategoria aldatu den gehien, zein gastu errepikatzen diren hilero eta sei hilabeteko sarrera eta gastuen fluxua.']],
+['copy','#5b6170',['Tus datos','Zure datuak'],['Todo se guarda solo en este móvil o navegador, nadie más lo ve. En Más puedes copiar una copia de seguridad (guárdala en Notas, por ejemplo) y restaurarla en otro dispositivo, o copiar los movimientos en CSV para Excel. Al empezar ves datos de ejemplo: bórralos en Más cuando quieras empezar con los tuyos.','Dena mugikor edo nabigatzaile honetan bakarrik gordetzen da, beste inork ez du ikusten. Gehiago atalean segurtasun-kopia bat kopia dezakezu (gorde Oharretan, adibidez) eta beste gailu batean leheneratu, edo mugimenduak CSVn kopiatu Excelerako. Hasieran adibideko datuak ikusten dituzu: ezabatu Gehiago atalean zureekin hasi nahi duzunean.']],
+['globe','#2fa4d9',['Idioma','Hizkuntza'],['Con el botón EU de arriba pasas la app a euskera (y con ES vuelves al castellano). También en Más → Idioma.','Goiko ES botoiarekin aplikazioa gaztelaniara pasatzen duzu (eta EU botoiarekin euskarara itzultzen zara). Baita Gehiago → Hizkuntza atalean ere.']]];
+  openSheet(`${head(T('Cómo funciona','Nola dabil'))}${H.map(([i,c,t,d])=>`<div style="display:flex;gap:14px;padding:12px 0;border-top:1px solid var(--line)"><span class="bd solid" style="--c:${c}">${ico(i)}</span><div><b style="font-size:19px">${T(...t)}</b><p style="margin:4px 0 0;color:var(--mute)">${Tl(...d)}</p></div></div>`).join('')}<button class="btn" style="margin-top:12px" data-act="helpok">${T('Entendido','Ulertuta')}</button>`)}
+
 let tT;function toast(m){const e=$('#toast');e.textContent=m;e.classList.add('on');clearTimeout(tT);tT=setTimeout(()=>e.classList.remove('on'),1800)}
 const num=v=>parseFloat(String(v).replace(/\s|€/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',','.'));
-async function copy(txt,ok){try{await navigator.clipboard.writeText(txt);toast(ok)}catch(e){openSheet(`${head('Copia manual')}<p class="note">No se pudo copiar automáticamente. Selecciona el texto y cópialo.</p><textarea class="in" readonly>${esc(txt)}</textarea>`)}}
-let armed=null;const twice=(b,f)=>{if(armed===b){armed=null;f()}else{armed=b;const o=b.innerHTML;b.textContent='¿Seguro? Toca otra vez';setTimeout(()=>{if(armed===b){armed=null;b.innerHTML=o}},3000)}};
+async function copy(txt,ok){try{await navigator.clipboard.writeText(txt);toast(ok)}catch(e){openSheet(`${head(T('Copia manual','Eskuzko kopia'))}<p class="note">${Tl('No se pudo copiar automáticamente. Selecciona el texto y cópialo.','Ezin izan da automatikoki kopiatu. Hautatu testua eta kopiatu.')}</p><textarea class="in" readonly>${esc(txt)}</textarea>`)}}
+let armed=null;const twice=(b,f)=>{if(armed===b){armed=null;f()}else{armed=b;const o=b.innerHTML;b.textContent=T('¿Seguro? Toca otra vez','Ziur? Sakatu berriro');setTimeout(()=>{if(armed===b){armed=null;b.innerHTML=o}},3000)}};
+function setLang(k){LANG=k;try{localStorage.setItem(KEY+'-lang',k)}catch(e){}render()}
 
 /* ---------- eventos ---------- */
 document.addEventListener('click',e=>{
@@ -442,40 +465,42 @@ document.addEventListener('click',e=>{
   case'add':openTx();break;
   case'edit':openTx(id);break;
   case'close':closeSheet();break;
+  case'lang':setLang(LANG==='es'?'eu':'es');toast(LANG==='es'?'Castellano':'Euskara');break;
+  case'setlang':setLang(b.dataset.k);break;
   case'kind':ui.kind=b.dataset.k;ui.cat=null;render();break;
   case'month':ui.month=b.dataset.m;ui.cat=null;render();break;
   case'cat':ui.cat=b.dataset.c&&ui.cat!==b.dataset.c?b.dataset.c:null;render();if(ui.cat)setTimeout(()=>document.querySelector('.day')?.scrollIntoView({behavior:'smooth'}),30);break;
   case'ttype':syncDraft();draft.type=b.dataset.k;if(draft.type!=='tr'&&CAT[draft.cat]?.kind!==draft.type)draft.cat=guess(draft.note);if(CAT[draft.cat]?.kind!==draft.type)draft.cat=null;txSheet();break;
   case'pickcat':draft.cat=b.dataset.c;manualCat=true;$('#cg').innerHTML=catGrid();$('#hint').textContent='';break;
   case'savetx':{syncDraft();const t=draft,amt=num(t.amount);
-    if(!(amt>0))return toast('Escribe un importe');if(t.type!=='tr'&&!t.cat)return toast('Elige una categoría');if(t.type==='tr'&&t.wallet===t.to)return toast('Elige dos carteras distintas');
+    if(!(amt>0))return toast(T('Escribe un importe','Idatzi zenbateko bat'));if(t.type!=='tr'&&!t.cat)return toast(T('Elige una categoría','Aukeratu kategoria bat'));if(t.type==='tr'&&t.wallet===t.to)return toast(T('Elige dos carteras distintas','Aukeratu bi zorro desberdin'));
     const rec={id:t.id||uid(),type:t.type,amount:Math.round(amt*100)/100,cat:t.type==='tr'?null:t.cat,wallet:t.wallet,to:t.type==='tr'?t.to:null,date:t.date||today(),note:t.note.trim()};
     if(rec.note&&rec.cat&&manualCat){const n=norm(rec.note);S.learn[n]=rec.cat;S.learn[n.split(/[^a-z0-9ñ]+/)[0]]=rec.cat}
-    const i=S.tx.findIndex(x=>x.id===rec.id);i>=0?S.tx[i]=rec:S.tx.push(rec);save();closeSheet();render();toast('Guardado');break}
-  case'deltx':twice(b,()=>{S.tx=S.tx.filter(x=>x.id!==draft.id);save();closeSheet();render();toast('Eliminado')});break;
+    const i=S.tx.findIndex(x=>x.id===rec.id);i>=0?S.tx[i]=rec:S.tx.push(rec);save();closeSheet();render();toast(T('Guardado','Gordeta'));break}
+  case'deltx':twice(b,()=>{S.tx=S.tx.filter(x=>x.id!==draft.id);save();closeSheet();render();toast(T('Eliminado','Ezabatuta'))});break;
   case'wallet':walletSheet(id);break;
   case'wcol':document.querySelectorAll('#wc .sw').forEach(x=>x.classList.toggle('on',x===b));break;
-  case'savewal':{const n=$('#wn').value.trim(),ini=num($('#wi').value)||0,col=document.querySelector('#wc .on')?.dataset.c||'#3dbb85';if(!n)return toast('Pon un nombre');
-    if(id){Object.assign(W(id),{name:n,initial:ini,color:col})}else S.wallets.push({id:uid(),name:n,initial:ini,color:col});save();closeSheet();render();toast('Cartera guardada');break}
-  case'delwal':if(S.tx.some(t=>t.wallet===id||t.to===id))return toast('Tiene movimientos: bórralos o muévelos antes');twice(b,()=>{S.wallets=S.wallets.filter(w=>w.id!==id);save();closeSheet();render()});break;
+  case'savewal':{const n=$('#wn').value.trim(),ini=num($('#wi').value)||0,col=document.querySelector('#wc .on')?.dataset.c||'#3dbb85';if(!n)return toast(T('Pon un nombre','Jarri izen bat'));
+    if(id){Object.assign(W(id),{name:n,initial:ini,color:col})}else S.wallets.push({id:uid(),name:n,initial:ini,color:col});save();closeSheet();render();toast(T('Cartera guardada','Zorroa gordeta'));break}
+  case'delwal':if(S.tx.some(t=>t.wallet===id||t.to===id))return toast(T('Tiene movimientos: bórralos o muévelos antes','Mugimenduak ditu: ezabatu edo mugitu lehenago'));twice(b,()=>{S.wallets=S.wallets.filter(w=>w.id!==id);save();closeSheet();render()});break;
   case'budget':budgetSheet(id);break;
   case'bdetail':budgetDetail(id);break;
   case'bper':draft.period=b.dataset.k;document.querySelectorAll('#bp button').forEach(x=>x.classList.toggle('on',x===b));break;
   case'bcat':{const c=b.dataset.c;draft.cats=draft.cats.includes(c)?draft.cats.filter(x=>x!==c):[...draft.cats,c];b.classList.toggle('on');break}
-  case'savebud':{const n=$('#bn').value.trim(),am=num($('#ba').value);if(!n)return toast('Pon un nombre');if(!(am>0))return toast('Pon un límite');
-    const rec={id:id||uid(),name:n,amount:am,period:draft.period,cats:draft.cats,wallet:$('#bw').value};const i=S.budgets.findIndex(x=>x.id===rec.id);i>=0?S.budgets[i]=rec:S.budgets.push(rec);save();closeSheet();render();toast('Presupuesto guardado');break}
+  case'savebud':{const n=$('#bn').value.trim(),am=num($('#ba').value);if(!n)return toast(T('Pon un nombre','Jarri izen bat'));if(!(am>0))return toast(T('Pon un límite','Jarri muga bat'));
+    const rec={id:id||uid(),name:n,amount:am,period:draft.period,cats:draft.cats,wallet:$('#bw').value};const i=S.budgets.findIndex(x=>x.id===rec.id);i>=0?S.budgets[i]=rec:S.budgets.push(rec);save();closeSheet();render();toast(T('Presupuesto guardado','Aurrekontua gordeta'));break}
   case'delbud':twice(b,()=>{S.budgets=S.budgets.filter(x=>x.id!==id);save();closeSheet();render()});break;
-  case'backup':copy(JSON.stringify(S),'Copia en el portapapeles');break;
-  case'csv':copy('fecha;tipo;categoría;concepto;cartera;destino;importe\n'+[...S.tx].sort((a,b)=>a.date.localeCompare(b.date)).map(t=>[t.date,{exp:'gasto',inc:'ingreso',tr:'transferencia'}[t.type],t.cat?CAT[t.cat]?.name:'',`"${(t.note||'').replace(/"/g,'""')}"`,wname(t.wallet),t.to?wname(t.to):'',String(t.type==='exp'?-t.amount:t.amount).replace('.',',')].join(';')).join('\n'),'CSV copiado');break;
+  case'backup':copy(JSON.stringify(S),T('Copia en el portapapeles','Kopia arbelean'));break;
+  case'csv':copy(T('fecha;tipo;categoría;concepto;cartera;destino;importe','data;mota;kategoria;kontzeptua;zorroa;helmuga;zenbatekoa')+'\n'+[...S.tx].sort((a,b)=>a.date.localeCompare(b.date)).map(t=>[t.date,{exp:Ts('gasto','gastua'),inc:Ts('ingreso','sarrera'),tr:Ts('transferencia','transferentzia')}[t.type],t.cat?cns(CAT[t.cat]||CAT.other):'',`"${(t.note||'').replace(/"/g,'""')}"`,wname(t.wallet),t.to?wname(t.to):'',String(t.type==='exp'?-t.amount:t.amount).replace('.',',')].join(';')).join('\n'),T('CSV copiado','CSVa kopiatuta'));break;
   case'restore':restoreSheet();break;
   case'help':helpSheet();break;
-  case'helpok':try{localStorage.setItem(KEY+'-help','1')}catch(e){}closeSheet();break;
-  case'dorestore':try{const d=JSON.parse($('#rs').value);if(!Array.isArray(d.tx)||!Array.isArray(d.wallets))throw 0;S={learn:{},budgets:[],...d};save();closeSheet();render();toast('Datos restaurados')}catch(err){toast('Esa copia no es válida')}break;
-  case'forget':S.learn={};save();render();toast('Reglas olvidadas');break;
-  case'wipe':twice(b,()=>{S={v:1,sample:false,wallets:[{id:uid(),name:'Mi cuenta',color:'#3dbb85',initial:0}],tx:[],budgets:[],learn:{}};save();ui.cat=null;location.hash='carteras';render();toast('Empiezas de cero')});break;
-  case'demo':S=sample();save();render();toast('Ejemplo cargado');break;
+  case'helpok':try{localStorage.setItem(KEY+'-help','1')}catch(err){}closeSheet();break;
+  case'dorestore':try{const d=JSON.parse($('#rs').value);if(!Array.isArray(d.tx)||!Array.isArray(d.wallets))throw 0;S={learn:{},budgets:[],...d};save();closeSheet();render();toast(T('Datos restaurados','Datuak leheneratuta'))}catch(err){toast(T('Esa copia no es válida','Kopia hori ez da baliozkoa'))}break;
+  case'forget':S.learn={};save();render();toast(T('Reglas olvidadas','Arauak ahaztuta'));break;
+  case'wipe':twice(b,()=>{S={v:1,sample:false,wallets:[{id:uid(),name:Ts('Mi cuenta','Nire kontua'),color:'#3dbb85',initial:0}],tx:[],budgets:[],learn:{}};save();ui.cat=null;location.hash='carteras';render();toast(T('Empiezas de cero','Hutsetik hasi zara'))});break;
+  case'demo':S=sample();save();render();toast(T('Ejemplo cargado','Adibidea kargatuta'));break;
   }});
-document.addEventListener('input',e=>{if(e.target.id==='fn'&&draft&&draft.type!=='tr'&&!manualCat){const g=guess(e.target.value);if(g&&CAT[g].kind===draft.type){draft.cat=g;$('#cg').innerHTML=catGrid();$('#hint').textContent='Categoría automática: '+CAT[g].name}else $('#hint').textContent=''}});
+document.addEventListener('input',e=>{if(e.target.id==='fn'&&draft&&draft.type!=='tr'&&!manualCat){const g=guess(e.target.value);if(g&&CAT[g].kind===draft.type){draft.cat=g;$('#cg').innerHTML=catGrid();$('#hint').textContent=T('Categoría automática','Kategoria automatikoa')+': '+cns(CAT[g])}else $('#hint').textContent=''}});
 document.addEventListener('change',e=>{if(e.target.id==='wf'){ui.wallet=e.target.value;ui.cat=null;render()}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#sheet').hidden)closeSheet()});
 const route=()=>{const h=location.hash.slice(1);ui.tab=TABS.some(t=>t[0]===h)?h:'movimientos';closeSheet();render();window.scrollTo(0,0)};
